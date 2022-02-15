@@ -1,0 +1,55 @@
+<!-- Discord modal -->
+<div
+  class="modal fade"
+  id="discordModal"
+  tabindex="-1"
+  aria-labelledby="discordModalLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'project' project_id=project.id %}">
+        <div class="modal-header">
+          <h5 class="modal-title" id="discordModalLabel">
+            Add Discord channel
+          </h5>
+        </div>
+        <div class="modal-body">
+          <p>
+            Add a webhook to a Discord channel (from its client) and then add
+            its url here
+          </p>
+
+          {% csrf_token %}
+          <input type="hidden" name="type" value="discord" />
+
+          {% for field in discord_form %}
+          <div class="form-group">
+            {% if field.errors %}
+            <div class="alert alert-danger" role="alert">
+              {{ field.errors }}
+            </div>
+            {% endif %}
+            {{ field.label_tag }} {{ field }}
+            {% if field.help_text%}
+            <small class="form-text text-muted">
+              {{ field.help_text|safe }}
+            </small>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+        <div class="modal-footer justify-content-between">
+          <button
+            type="button"
+            class="btn bg-gradient-dark"
+            data-bs-dismiss="modal"
+          >
+            Close
+          </button>
+          <button type="submit" class="btn bg-gradient-primary">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

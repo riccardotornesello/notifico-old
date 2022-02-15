@@ -1,0 +1,207 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Dashboard {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}
+<style>
+  button, input[type="submit"], input[type="reset"] {
+	background: none;
+	color: inherit;
+	border: none;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;
+}
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+  {% include "modals/discord.html" %}
+  {% include "modals/telegram.html" %}
+  {% include "modals/ping.html" %}
+
+  <div class="container-fluid py-4">
+    <div class="card card-body blur shadow-blur mb-4 overflow-hidden">
+      <div class="row gx-4">
+        <div class="col-auto">
+          <div class="avatar avatar-xl position-relative">
+            <img src="/static/assets/img/folder.png" alt="project" class="w-100 border-radius-lg shadow-sm bg-gradient-primary p-2">
+          </div>
+        </div>
+        <div class="col-auto my-auto">
+          <div class="h-100">
+            <h5 class="mb-1">
+              {{project.name}}
+            </h5>
+            <p class="mb-0 font-weight-bold text-sm">
+              Api key: {{ project.api_key }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% include "includes/messages.html" %}
+
+    <div class="row">
+      <div class="col-12">
+        <div class="card mb-4">
+          <div class="card-header pb-0 p-3">
+            <div class="row">
+              <div class="col-6">
+                <h6 class="mb-0">Tests</h6>
+                <p class="text-sm mb-0">
+                  <i class="fa fa-tasks text-info" aria-hidden="true"></i>
+                  {{ TESTS_LIMIT }} maximum tests,<span class="font-weight-bold ms-1">{{ tests_left }} left</span>
+                </p>
+              </div>
+              <div class="col-6 text-end">
+                <div class="dropdown btn-group">
+                  <button {% if tests_left <= 0 %}disabled{% endif %} class="btn bg-gradient-primary dropdown-toggle mb-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    Add test
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end px-2 py-3" aria-labelledby="dropdownMenuButton">
+                    <li><button type="button" class="dropdown-item border-radius-md" data-bs-toggle="modal" data-bs-target="#pingModal">Ping</button></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body px-0 pt-0 pb-2">
+            <div class="table-responsive p-0">
+              <table class="table align-items-center mb-0">
+                <thead>
+                  <tr>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Channel id</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                    <th class="text-secondary opacity-7"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for test in tests %}
+                  <tr>
+                    <td>
+                      <div class="d-flex px-2 py-1">
+                        <div>
+                          <img src="/static/assets/img/{{ test.type }}.png" class="avatar avatar-sm me-3 p-2" alt="{{ test.type }}"
+                              style="background-image: linear-gradient(310deg, #cb0c9f 0%, #cb0c9f 100%);">
+                        </div>
+                        <div class="d-flex flex-column justify-content-center">
+                          <h6 class="mb-0 text-sm">{{ test.name }}</h6>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="align-middle text-center text-sm">
+                      <span class="badge badge-sm bg-gradient-success">Enabled</span>
+                    </td>
+                    <td class="align-middle">
+                      <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="id" value="{{test.id}}">
+                        <input type="hidden" name="type" value="test">
+                        <input type="hidden" name="_method" value="delete">
+                        <button type="submit" class="text-secondary font-weight-bold text-xs" data-toggle="tooltip" data-original-title="Delete test">
+                          Delete
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12">
+        <div class="card mb-4">
+          <div class="card-header pb-0 p-3">
+            <div class="row">
+              <div class="col-6">
+                <h6 class="mb-0">Channels</h6>
+                <p class="text-sm mb-0">
+                  <i class="fa fa-tasks text-info" aria-hidden="true"></i>
+                  {{ CHANNELS_LIMIT }} maximum channels,<span class="font-weight-bold ms-1">{{ channels_left }} left</span>
+                </p>
+              </div>
+              <div class="col-6 text-end">
+                <div class="dropdown btn-group">
+                  <button {% if channels_left <= 0 %}disabled{% endif %} class="btn bg-gradient-primary dropdown-toggle mb-0" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    Add channel
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end px-2 py-3" aria-labelledby="dropdownMenuButton">
+                    <li><button type="button" class="dropdown-item border-radius-md" data-bs-toggle="modal" data-bs-target="#telegramModal">Telegram</button></li>
+                    <li><button type="button" class="dropdown-item border-radius-md" data-bs-toggle="modal" data-bs-target="#discordModal">Discord</button></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-body px-0 pt-0 pb-2">
+            <div class="table-responsive p-0">
+              <table class="table align-items-center mb-0">
+                <thead>
+                  <tr>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Channel id</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
+                    <th class="text-secondary opacity-7"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for channel in channels %}
+                  <tr>
+                    <td>
+                      <div class="d-flex px-2 py-1">
+                        <div>
+                          <img src="/static/assets/img/{{ channel.type }}.png" class="avatar avatar-sm me-3 p-2" alt="{{ channel.type }}"
+                              style="background-image: linear-gradient(310deg, #cb0c9f 0%, #cb0c9f 100%);">
+                        </div>
+                        <div class="d-flex flex-column justify-content-center">
+                          <h6 class="mb-0 text-sm">{{ channel.name }}</h6>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="align-middle text-center text-sm">
+                      <span class="badge badge-sm bg-gradient-success">Enabled</span>
+                    </td>
+                    <td class="align-middle">
+                      <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="id" value="{{channel.id}}">
+                        <input type="hidden" name="type" value="channel">
+                        <input type="hidden" name="_method" value="delete">
+                        <button type="submit" class="text-secondary font-weight-bold text-xs" data-toggle="tooltip" data-original-title="Delete channel">
+                          Delete
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% include "includes/footer.html" %}
+
+  </div>
+
+{% endblock content %}
+
+{% block javascripts %}
+<script>
+var openModal = new bootstrap.Modal(document.getElementById('{{open_modal}}Modal'), {
+  keyboard: false
+})
+openModal.show()
+</script>
+{% endblock javascripts %}

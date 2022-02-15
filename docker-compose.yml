@@ -1,0 +1,72 @@
+version: "3"
+
+services:
+  web:
+    build: .
+    restart: always
+    command: python manage.py runserver 0.0.0.0:8000
+    depends_on:
+      - db
+      - redis
+      - mail
+    environment:
+      ENVIRONMENT: dev
+    env_file:
+      - .env
+    ports:
+      - 8000:8000
+    volumes:
+      - ./:/usr/src/app
+
+  celery:
+    build: .
+    restart: always
+    entrypoint: celery -A notifico worker -l INFO
+    depends_on:
+      - web
+      - db
+      - redis
+    environment:
+      ENVIRONMENT: dev
+    env_file:
+      - .env
+    volumes:
+      - ./:/usr/src/app
+
+  beat:
+    build: .
+    restart: always
+    entrypoint: celery -A notifico beat -l INFO
+    depends_on:
+      - redis
+    environment:
+      ENVIRONMENT: dev
+    env_file:
+      - .env
+    volumes:
+      - ./:/usr/src/app
+
+  redis:
+    image: redis
+    restart: always
+
+  db:
+    image: mariadb:10.7
+    restart: always
+    volumes:
+      - ./dockerdata/db:/var/lib/mysql
+    environment:
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
+      MYSQL_DATABASE: web
+      MYSQL_USER: web
+    env_file:
+      - .env
+
+  mail:
+    image: boky/postfix
+    restart: always
+    volumes:
+      - ./dockerdata/mail/keys:/etc/opendkim/keys
+    environment:
+      ALLOWED_SENDER_DOMAINS: notifico.xyz
+      DKIM_AUTOGENERATE: 1
